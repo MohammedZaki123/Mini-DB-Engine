@@ -5,6 +5,7 @@
 #include <vector>
 #include <stdexcept>
 # include "SQLTerm.hpp"
+# include "FileManager.hpp"
 
 // Exception class
 class DBAppException : public std::runtime_error {
@@ -16,14 +17,19 @@ public:
 // Forward declaration
 
 class DBApp {
+    FileManager * diskinfomgr;
+    FileManager * metadatamgr;
 public:
     // Creates a table with the given schema and constraints
+    DBApp();
+    // Calls Abstract Factory Method which allocated object for different fileManager types
+    void init(); 
     void createTable(
         const std::string& tableName,
         const std::string& clusteringKeyColumn,
         const std::unordered_map<std::string, std::string>& colNameType,
-        const std::unordered_map<std::string, std::string>& colNameMin,
-        const std::unordered_map<std::string, std::string>& colNameMax
+        const std::unordered_map<std::string, std::any>& colNameMin,
+        const std::unordered_map<std::string, std::any>& colNameMax
     );
 
     // Creates a sparse index on a specific column

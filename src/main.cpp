@@ -6,6 +6,7 @@
 # include "DBApp.hpp"
 # include "SQLTerm.hpp"
 # include "iostream"
+# include <chrono>
 
 void write_csv(std::string filename, std::vector<std::pair<std::string, std::vector<int>>> dataset){
     // Make a CSV file with one or more columns of integer values
@@ -112,6 +113,7 @@ std::vector<std::pair<std::string, std::vector<int>>> read_csv(std::string filen
 }
 
 int main() {
+
     // Read three_cols.csv and ones.csv    
     std::string strTableName = "Student";
     DBApp dbApp;
@@ -122,14 +124,14 @@ int main() {
     htblColNameType["name"] = "String";
     htblColNameType["gpa"] = "Double";
 
-     std::unordered_map<std::string, std::string> colNameMin;
-     colNameMin["id"] = std::to_string(0);
+     std::unordered_map<std::string, std::any> colNameMin;
+     colNameMin["id"] = 0;
      colNameMin["name"] = "A";
-     colNameMin["gpa"] = std::to_string(0.7);
-     std::unordered_map<std::string, std::string> colNameMax;
-     colNameMin["id"] = std::to_string(10000000);
+     colNameMin["gpa"] = 0.7;
+     std::unordered_map<std::string, std::any> colNameMax;
+     colNameMin["id"] = 10000000;
      colNameMin["name"] = "ZZZZZZZZZZZZZ";
-     colNameMin["gpa"] = std::to_string(4.0);
+     colNameMin["gpa"] = 4.0;
     // Create table and index
     dbApp.createTable(strTableName, "id", htblColNameType,colNameMin,colNameMax);
     // dbApp.createIndex(strTableName, {"gpa"});
