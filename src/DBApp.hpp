@@ -3,22 +3,21 @@
 #include <unordered_map>
 #include <any>
 #include <vector>
-#include <stdexcept>
 # include "SQLTerm.hpp"
 # include "FileManager.hpp"
+# include "FactoryObjectCreation.hpp"
+# include "Exception.hpp"
+# include <algorithm>
 
-// Exception class
-class DBAppException : public std::runtime_error {
-public:
-    explicit DBAppException(const std::string& msg)
-        : std::runtime_error(msg) {}
-};
+static const unsigned int maxRowPerPage = 3;
+
 
 // Forward declaration
 
 class DBApp {
     FileManager * diskinfomgr;
     FileManager * metadatamgr;
+    std::vector<std::string> datatypes;  
 public:
     // Creates a table with the given schema and constraints
     DBApp();

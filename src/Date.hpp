@@ -9,7 +9,8 @@ private:
 public:
     // Constructor(s) can be added as needed
     Date(std::string year, std::string month, std::string day);
-    // Operator overloads
+    // Date must have a copy constructor
+    // Operator overloading
     Date& operator=(const Date& date);
     bool operator>(const Date& date) const;
     bool operator<(const Date& date) const;
