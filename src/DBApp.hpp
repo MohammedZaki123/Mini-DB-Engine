@@ -8,12 +8,15 @@
 # include "FactoryObjectCreation.hpp"
 # include "Exception.hpp"
 # include <algorithm>
+# include "Date.hpp"
 
 static const unsigned int maxRowPerPage = 3;
 
 
 // Forward declaration
-
+// enum Datatypes{
+//     INTEGER, DOUBLE, STRING, DATE
+// };
 class DBApp {
     FileManager * diskinfomgr;
     FileManager * metadatamgr;
@@ -24,11 +27,11 @@ public:
     // Calls Abstract Factory Method which allocated object for different fileManager types
     void init(); 
     void createTable(
-        const std::string& tableName,
-        const std::string& clusteringKeyColumn,
-        const std::unordered_map<std::string, std::string>& colNameType,
-        const std::unordered_map<std::string, std::any>& colNameMin,
-        const std::unordered_map<std::string, std::any>& colNameMax
+        std::string& tableName,
+       const  std::string& clusteringKeyColumn,
+        std::unordered_map<std::string, std::string>& colNameType,
+        std::unordered_map<std::string, std::any>& colNameMin,
+        std::unordered_map<std::string, std::any>& colNameMax
     );
 
     // Creates a sparse index on a specific column
@@ -61,4 +64,5 @@ public:
         const std::vector<SQLTerm>& sqlTerms,
         const std::vector<std::string>& logicalOperators
     );
+
 };

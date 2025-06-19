@@ -5,19 +5,23 @@ private:
     int year;
     int month;
     int day;
-
 public:
     // Constructor(s) can be added as needed
-    Date(std::string year, std::string month, std::string day);
+    Date(int year, int month, int day);
     // Date must have a copy constructor
+    Date(const Date& date);
     // Operator overloading
-    Date& operator=(const Date& date);
+    bool operator==(const Date& date);
     bool operator>(const Date& date) const;
     bool operator<(const Date& date) const;
 
     // Utility functions
-    void printDate() const;
+    // getDate() is used to store date in csv file based on acceptable format
+    std::string getDate() const;
     int getYear() const;
     int getMonth() const;
     int getDay() const;
+    void setYear(const int& year);
+    void setMonth(const int& month);
+    void setDay(const int& day);
 };

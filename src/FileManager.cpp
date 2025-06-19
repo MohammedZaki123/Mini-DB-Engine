@@ -66,7 +66,37 @@ std::vector<std::vector<std::string>> DiskInfoManager::readCSV(){
      return lines;
 }
 void MetaDataManager::writeCSV(std::vector<std::vector<std::string>> lines){
-    
+    std::ifstream inFile(filePath);
+    std::vector<std::string> existingLines;
+    std::string line;
+
+    while (std::getline(inFile, line)) {
+        existingLines.push_back(line);
+    }
+    inFile.close();
+
+    // Step 2: Trim trailing empty lines
+    while (!existingLines.empty() && existingLines.back().empty()) {
+        existingLines.pop_back();
+    }
+
+    // Step 3: Reopen in write mode to truncate and clean old trailing lines
+    std::ofstream outFile(filePath, std::ios::trunc);
+    for (const auto& l : existingLines) {
+        outFile << l << '\n';
+    }
+
+    // Step 4: Append new rows
+    for (const auto& row : lines) {
+        for (size_t i = 0; i < row.size(); ++i) {
+            outFile << row[i];
+            if (i < row.size() - 1)
+                outFile << ',';
+        }
+        outFile << '\n';
+    }
+
+    outFile.close();
 }
 void DiskInfoManager::writeCSV(std::vector<std::vector<std::string>> lines){
 

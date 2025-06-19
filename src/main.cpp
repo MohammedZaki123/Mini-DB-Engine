@@ -120,34 +120,37 @@ int main() {
     dbApp.init();
     // Define table schema (column name → data type)
     std::string strTableName = "Student";
-    std::unordered_map<std::string, std::string> htblColNameType;
-    htblColNameType["id"] = "Integer";
-    htblColNameType["name"] = "String";
-    htblColNameType["gpa"] = "Double";
+    // std::unordered_map<std::string, std::string> htblColNameType;
+    // htblColNameType["id"] = "Integer";
+    // htblColNameType["name"] = "String";
+    // htblColNameType["gpa"] = "Double";
+    // htblColNameType["DateOfBirth"] = "Date";
 
-     std::unordered_map<std::string, std::any> colNameMin;
-     colNameMin["id"] = 0;
-     colNameMin["name"] = "A";
-     colNameMin["gpa"] = 0.7;
-     std::unordered_map<std::string, std::any> colNameMax;
-     colNameMin["id"] = 10000000;
-     colNameMin["name"] = "ZZZZZZZZZZZZZ";
-     colNameMin["gpa"] = 4.0;
-    // Create table and index
-    try{
-        dbApp.createTable(strTableName, "id", htblColNameType,colNameMin,colNameMax);
-    }catch(DBAppException e){
-        e.what();
-    }
+    //  std::unordered_map<std::string, std::any> colNameMin;
+    //  colNameMin["id"] = 0;
+    //  colNameMin["name"] = "A";
+    //  colNameMin["gpa"] = 0.7;
+    //  colNameMin["DateOfBirth"] = Date(2002,06,21);
+    //  std::unordered_map<std::string, std::any> colNameMax;
+    //  colNameMax["id"] = 10000000;   
+    //  colNameMax["name"] = std::string("ZZZZZZZZZZZZZ");
+    //  colNameMax["gpa"] = 0.67;
+    //  colNameMax["DateOfBirth"] = Date(2002,07,21);
+    // // Create table and index
+    // try{
+    //     dbApp.createTable(strTableName, "id", htblColNameType,colNameMin,colNameMax);
+    // }catch(DBAppException e){
+    //     std::cout << e.what() << std::endl;
+    // }
     // // dbApp.createIndex(strTableName, {"gpa"});
 
-    // // Insert rows
-    // std::unordered_map<std::string, std::any> htblColNameValue;
+    // Insert rows
+    std::unordered_map<std::string, std::any> htblColNameValue;
 
-    // htblColNameValue["id"] = 2343432;
-    // htblColNameValue["name"] = std::string("Ahmed Noor");
-    // htblColNameValue["gpa"] = 0.95;
-    // dbApp.insertIntoTable(strTableName, htblColNameValue);
+    htblColNameValue["id"] = 2343432;
+    htblColNameValue["name"] = std::string("Ahmed Noor");
+    htblColNameValue["gpa"] = 0.95;
+    dbApp.insertIntoTable(strTableName, htblColNameValue);
 
     // htblColNameValue.clear();
     // htblColNameValue["id"] = 453455;
