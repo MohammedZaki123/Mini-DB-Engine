@@ -1,1 +1,5 @@
 Table Name,Column Name,Column Type,ClusteringKey,IndexName,IndexType,min,max
+Student,DateOfBirth,date,False,null,null,2002-6-21,2002-6-21
+Student,gpa,double,False,null,null,0.700000,4.000000
+Student,name,string,False,null,null,A,ZZZZZZZZZZZZZ
+Student,id,integer,True,null,null,0,10000000
