@@ -1,5 +1,1 @@
-- Mini DB Engine is a project dedicated to process SQL Statements such as (CREATE TABLE, UPDATE, DELETE, SELECT) through an engine to alter csv file status based on sql statement entered by the user:
-For example: CREATE TABLE Demo{
-    id INT,
-    name VARCHAR
-}: 
+- Mini DB Engine description:
