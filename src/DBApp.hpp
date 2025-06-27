@@ -10,7 +10,7 @@
 # include <algorithm>
 # include "Date.hpp"
 
-static const unsigned int maxRowPerPage = 3;
+// static const unsigned int maxRowPerPage = 3;
 
 
 // Forward declaration
@@ -43,7 +43,7 @@ public:
     // Inserts a single row (must include clustering key)
     void insertIntoTable(
         const std::string& tableName,
-        const std::unordered_map<std::string, std::any>& colNameValue
+        std::unordered_map<std::string, std::any>& colNameValue
     );
 
     // Updates a row by clustering key, new values given in colNameValue

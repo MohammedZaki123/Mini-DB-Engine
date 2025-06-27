@@ -128,29 +128,34 @@ int main() {
 
     //  std::unordered_map<std::string, std::any> colNameMin;
     //  colNameMin["id"] = 0;
-    //  colNameMin["name"] = "A";
+    //  colNameMin["name"] = std::string("A");
     //  colNameMin["gpa"] = 0.7;
     //  colNameMin["DateOfBirth"] = Date(2002,06,21);
     //  std::unordered_map<std::string, std::any> colNameMax;
     //  colNameMax["id"] = 10000000;   
     //  colNameMax["name"] = std::string("ZZZZZZZZZZZZZ");
-    //  colNameMax["gpa"] = 0.67;
-    //  colNameMax["DateOfBirth"] = Date(2002,07,21);
-    // // Create table and index
+    //  colNameMax["gpa"] = 4.0;
+    //  colNameMax["DateOfBirth"] = Date(2025,06,21);
+    // Create table and index
     // try{
     //     dbApp.createTable(strTableName, "id", htblColNameType,colNameMin,colNameMax);
     // }catch(DBAppException e){
     //     std::cout << e.what() << std::endl;
     // }
-    // // dbApp.createIndex(strTableName, {"gpa"});
+    // dbApp.createIndex(strTableName, {"gpa"});
 
     // Insert rows
     std::unordered_map<std::string, std::any> htblColNameValue;
 
-    htblColNameValue["id"] = 2343432;
-    htblColNameValue["name"] = std::string("Ahmed Noor");
-    htblColNameValue["gpa"] = 0.95;
+    htblColNameValue["id"] = 40;
+    htblColNameValue["name"] = std::string("ramez");
+    htblColNameValue["gpa"] = 2.8;
+    htblColNameValue["DateOfBirth"] = Date("2002-09-11");
+    try{
     dbApp.insertIntoTable(strTableName, htblColNameValue);
+    }catch(DBAppException e){
+        std::cout << e.what() << std::endl;
+    }
 
     // htblColNameValue.clear();
     // htblColNameValue["id"] = 453455;
@@ -207,19 +212,3 @@ int main() {
 
     return 0;
 }
-
-
-// int main() {
-//     // Make three vectors, each of length 100 filled with 1s, 2s, and 3s
-//     std::vector<int> vec1(100, 1);
-//     std::vector<int> vec2(100, 2);
-//     std::vector<int> vec3(100, 3);
-    
-//     // Wrap into a vector
-//     std::vector<std::pair<std::string, std::vector<int>>> vals = {{"One", vec1}, {"Two", vec2}, {"Three", vec3}};
-    
-//     // Write the vector to CSV
-//     write_csv("three_cols.csv", vals);
-    
-//     return 0;
-// }

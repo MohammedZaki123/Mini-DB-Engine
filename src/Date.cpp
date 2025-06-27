@@ -1,11 +1,24 @@
 # include "Date.hpp"
-
+# include <vector>
+# include <filesystem>
 Date::Date(int year, int month, int day) 
 :year(year), month(month) , day(day){
     // To be modified later
     // this->setYear(this->year);
     // this->setMonth(this->month);
     // this->setDay(this->day);
+}
+Date::Date(std::string dateStr){
+    std::vector<std::string> result;
+    std::stringstream ss(dateStr);
+    std::string part;
+
+    while (std::getline(ss, part, '-')) {
+         result.push_back(part);
+    }
+   this->year = std::stoi(result[0]);
+   this->month = std::stoi(result[1]);
+   this->day = std::stoi(result[2]);
 }
 
 Date::Date(const Date& date){

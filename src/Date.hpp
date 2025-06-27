@@ -8,6 +8,7 @@ private:
 public:
     // Constructor(s) can be added as needed
     Date(int year, int month, int day);
+    Date(std::string dateStr);
     // Date must have a copy constructor
     Date(const Date& date);
     // Operator overloading

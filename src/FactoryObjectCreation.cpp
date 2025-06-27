@@ -10,7 +10,7 @@ FileManager * Factory::createMgrfromType(FileManager * ptr, std::string typeName
     //     ptr = new IndexManager();
     }else{
         ptr = nullptr;
-    }
+    }   
     return ptr;
 }
 

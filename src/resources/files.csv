@@ -1,1 +1,8 @@
-Name,type,filePath,MinPKValue,MaxPKValue,Total Records
+Name,type,FileName,filePath
+Student,Table,Student1.csv,resources/Student1.csv
+Student,Table,Student2.csv,resources/Student2.csv
+Student,Table,Student3.csv,resources/Student3.csv
+Student,Table,Student4.csv,resources/Student4.csv
+Student,Table,Student5.csv,resources/Student5.csv
+Student,Table,Student6.csv,resources/Student6.csv
+Student,Table,Student7.csv,resources/Student7.csv
