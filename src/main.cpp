@@ -147,12 +147,22 @@ int main() {
     // Insert rows
     std::unordered_map<std::string, std::any> htblColNameValue;
 
-    htblColNameValue["id"] = 40;
-    htblColNameValue["name"] = std::string("ramez");
-    htblColNameValue["gpa"] = 2.8;
-    htblColNameValue["DateOfBirth"] = Date("2002-09-11");
+    // htblColNameValue["id"] = 80;
+    // htblColNameValue["name"] = std::string("Obama");
+    // htblColNameValue["gpa"] = 0.8;
+    // // htblColNameValue["DateOfBirth"] = Date("2019-10-11");
+    // try{
+    // dbApp.insertIntoTable(strTableName, htblColNameValue);
+    // }catch(DBAppException e){
+    //     std::cout << e.what() << std::endl;
+    // }
+    // htblColNameValue["id"] = 30;
+    std::string clusteringKeyValue = "80";
+    htblColNameValue["id"] = 80;
+    htblColNameValue["gpa"] = 2.2;
+    htblColNameValue["DateOfBirth"] = Date("2020-9-15");
     try{
-    dbApp.insertIntoTable(strTableName, htblColNameValue);
+        dbApp.updateTable(strTableName,clusteringKeyValue,htblColNameValue);
     }catch(DBAppException e){
         std::cout << e.what() << std::endl;
     }

@@ -83,38 +83,75 @@ void DBApp::insertIntoTable(const std::string &tableName, std::unordered_map<std
     if(fileOut.empty()){
         throw DBAppException("Table " + tableName + " does not exist in the database");
     }
-    Table * table = new Table(fileOut,diskinfomgr);
+    Table table = Table(fileOut,diskinfomgr);
+    if(colNameValue.count(table.getClusteringKey()) == 0){
+            throw DBAppException("Primary Key must not be null in any inserted record");
+    }
      for(auto i = colNameValue.begin() ; i != colNameValue.end(); i++){
         std::string colName = i->first;
         // std::transform(colName.begin(),colName.end(),colName.begin(), ::tolower);       
-        if(table->getColumnTypes().find(colName) == table->getColumnTypes().end()){
+        if(table.getColumnTypes().find(colName) == table.getColumnTypes().end()){
             throw DBAppException("Column " + colName + " does not exist in the table " + tableName);
         }
-        std::string type = table->getColumnTypes().at(colName);
+        std::string type = table.getColumnTypes().at(colName);
         if(!isTypeCompatible(i->second,type)){
             throw DBAppException("The datatype of value of column " + i->first +  " is not compatible");
         }
-        std::any minValue = table->getColumnMin().at(i->first);
-        std::any maxValue = table->getColumnMax().at(i->first);
+        std::any minValue = table.getColumnMin().at(i->first);
+        std::any maxValue = table.getColumnMax().at(i->first);
         if(isLessThan(i->second,minValue)){
             throw DBAppException("To be inserted value is lower than minimum value of column " + i->first);
         }
         if(isMoreThan(i->second,maxValue)){
             throw DBAppException("To be inserted value is higher than maximum value of column " + i->first);
         }
-        if(colNameValue.count(table->getClusteringKey()) == 0){
-            throw DBAppException("Primary Key must not be null in any inserted record");
-        }
      }
-      table->insertRecord(colNameValue);
+      table.insertRecord(colNameValue);
       delete metadatamgr;
       delete diskinfomgr;
-      std::cout << "Inserting the new record is done successfuly" << std::endl;
+    //   Useful message for multithreading and concurrency
+      std::cout << "One row affected" << std::endl;
 }
 
-void DBApp::updateTable(const std::string &tableName, const std::string &clusteringKeyValue, const std::unordered_map<std::string, std::any> &colNameValue)
+void DBApp::updateTable(const std::string &tableName, const std::string strClusteringKeyValue , const std::unordered_map<std::string, std::any> &colNameValue)
 {
-    
+    std::vector<std::vector<std::string>> fileOut = metadatamgr->readCSV(tableName);
+    if(fileOut.empty()){
+        throw DBAppException("Table " + tableName + " does not exist in the database");
+    }
+    Table  table = Table(fileOut,diskinfomgr);
+    if(colNameValue.count(table.getClusteringKey())){
+            throw DBAppException("Clustering Key column " + table.getClusteringKey() + " value cannot be altered");
+    }
+     for(auto i = colNameValue.begin() ; i != colNameValue.end(); i++){
+        std::string colName = i->first;
+        // std::transform(colName.begin(),colName.end(),colName.begin(), ::tolower);       
+        if(table.getColumnTypes().find(colName) == table.getColumnTypes().end()){
+            throw DBAppException("Column " + colName + " does not exist in the table " + tableName);
+        }
+        std::string type = table.getColumnTypes().at(colName);
+        if(!isTypeCompatible(i->second,type)){
+            throw DBAppException("The datatype of value of column " + i->first +  " is not compatible");
+        }
+        std::any minValue = table.getColumnMin().at(i->first);
+        std::any maxValue = table.getColumnMax().at(i->first);
+        if(isLessThan(i->second,minValue)){
+            throw DBAppException("To be inserted value is lower than minimum value of column " + i->first);
+        }
+        if(isMoreThan(i->second,maxValue)){
+            throw DBAppException("To be inserted value is higher than maximum value of column " + i->first);
+        }
+     }
+    //  Assuming that clustering key value input can be converted into its correct datatype
+      bool isAffected = table.updateRecord(colNameValue,strClusteringKeyValue);
+      delete metadatamgr;
+      delete diskinfomgr;
+      //   Useful message for multithreading and concurrency
+      if(isAffected){
+        std::cout << "One record is affected by the update" << std::endl;
+      }else{
+        std::cout << "No records affected by the update" << std::endl;
+      }
 }
 
 void DBApp::deleteFromTable(const std::string &tableName, const std::unordered_map<std::string, std::any> &colNameValue)

@@ -14,10 +14,10 @@ private:
     std::string name;
     std::string clusteringKey;
     std::vector<std::string> colNames;
-    std::vector<std::any> types;
-    std::vector<std::any> min;
-    std::vector<std::any> max;
-    std::vector<Index *> indices;
+    // std::vector<std::any> types;
+    // std::vector<std::any> min;
+    // std::vector<std::any> max;
+    // std::vector<Index *> indices;
     // Alternative Approach
     std::unordered_map<std::string, std::string> columnTypes;
     std::unordered_map<std::string, std::any> columnMin;
@@ -29,6 +29,7 @@ private:
 public:
     Table(std::vector<std::vector<std::string>> lines, FileManager * mgr);
     void insertRecord(const std::unordered_map<std::string, std::any>& values);
+    bool  updateRecord(const std::unordered_map<std::string, std::any>& values, const std::string strClusteringKeyValue);
     void updateFilesInfo(std::vector<Page> &pages, int first, int last);
     const std::string& getName() const;
     const std::string& getClusteringKey() const;

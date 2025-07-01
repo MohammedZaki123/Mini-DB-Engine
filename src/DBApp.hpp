@@ -49,7 +49,7 @@ public:
     // Updates a row by clustering key, new values given in colNameValue
     void updateTable(
         const std::string& tableName,
-        const std::string& clusteringKeyValue,
+        const std::string strClusteringKeyValue,
         const std::unordered_map<std::string, std::any>& colNameValue
     );
 

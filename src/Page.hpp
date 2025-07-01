@@ -16,10 +16,15 @@ private:
 public:
     Page(std::string name, std::string pkType, std::string pkColName);
     Page(std::string tableName, int noOfPages, std::any min, std::any max);
-    bool isTarget(Record & record);  
+    // This function for insertion, 
+    // In the case of updating,the following function does not the existence of record in this page
+    // But if the record exist in the table, it will definitely appear in this page
+    bool isTarget(Record & record);
+    bool isTarget(std::any keyVal);  
     void insertRec(Record & record, std::vector<std::string> &remRec);
     void shiftRec(std::vector<std::string>& record);  
     void insertRec(std::vector<std::string> record, std::vector<std::string> colNames);
+    bool updateRec(std::any keyVal, std::unordered_map<std::string, std::any> newVals, std::unordered_map<std::string, std::string> types, std::string keyCol);
     const std::vector<std::string> toString(std::string tableName);
     // Getters
     const std::string& getName() const { return name; }

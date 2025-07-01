@@ -88,6 +88,30 @@ void Table::insertRecord(const std::unordered_map<std::string, std::any> &values
     // updateFilesInfo(pages,targetPagePos,i);
 }
 
+bool Table::updateRecord(const std::unordered_map<std::string, std::any> &values,const std::string strClusteringKeyValue)
+{
+   bool isUpdated = false;
+   std::vector<std::vector<std::string>> linesOfPages = manager->readCSV(name);
+   if(linesOfPages.empty()){
+    return isUpdated;
+   }
+   std::any keyValue = fromStr(columnTypes.at(clusteringKey),strClusteringKeyValue);
+   std::vector<Page> pages;
+   for(std::vector<std::string> line: linesOfPages){
+        Page p = Page(line[2],columnTypes.at(clusteringKey),clusteringKey);
+        pages.push_back(p);
+    }
+    int i = 0;
+        while(i < pages.size()){
+            if(pages[i].isTarget(keyValue))
+            break;
+            i++;
+        }
+    if(pages[i].updateRec(keyValue,values,columnTypes,clusteringKey)){
+        isUpdated = true;
+    }
+    return isUpdated;
+}
 // void Table::updateFilesInfo(std::vector<Page>& pages, int first, int last)
 // {
 //     std::vector<std::vector<std::string>> lines;
@@ -98,7 +122,7 @@ void Table::insertRecord(const std::unordered_map<std::string, std::any> &values
 //     manager->writeCSV(lines);
 // }
 
-// --- Getters ---
+// --- Getters ---  
 const std::string& Table::getName() const {
     return name;
 }

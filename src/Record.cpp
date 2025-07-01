@@ -24,18 +24,18 @@ Record::Record(const std::unordered_map<std::string, std::any> &values, std::uno
     this->datatypes = types;
 }
 
-bool Record::operator==(Record record)
+bool Record::operator==(Record & record)
 {
     return isEqual(this->vals.at(clusteringKey), record.getVals().at(record.getClusteringKey()));
 }
 
-bool Record::operator<(Record record)
+bool Record::operator<(Record & record)
 {
 
     return isLessThan(this->vals.at(clusteringKey), record.getVals().at(record.getClusteringKey()));
 }
 
-bool Record::operator>(Record record)
+bool Record::operator>(Record & record)
 {
     return isMoreThan(this->vals.at(clusteringKey), record.getVals().at(record.getClusteringKey()));
 }
@@ -53,7 +53,10 @@ const std::unordered_map<std::string, std::any>& Record::getVals() const {
 }
 
 void Record::setVals(const std::unordered_map<std::string, std::any>& v) {
-    vals = v;
+    // Only keys exist in v will affect the same keys in the instance variable vals
+     for(auto it = v.begin() ; it != v.end(); it++){
+        vals[it->first] = v.at(it->first);
+     }
 }
 
 // ----- Static Members -----

@@ -22,9 +22,9 @@ class Record {
     , std::string key);
     // storing every value in values instance variable of object
 
-    bool operator==(Record record);
-    bool operator<(Record record);
-    bool operator>(Record record);
+    bool operator==(Record& record);
+    bool operator<(Record &record);
+    bool operator>(Record &record);
     // Instance Getters and Setters
 const std::string& getClusteringKey() const;
 void setClusteringKey(const std::string& key);

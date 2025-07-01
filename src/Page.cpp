@@ -38,6 +38,17 @@ bool Page::isTarget(Record & record)
     return true;
 }
 
+bool Page::isTarget(std::any keyVal)
+{
+    if(isLessThan(keyVal,minPKValue)){
+        return false;
+    }
+    else if(isMoreThan(keyVal,maxPKValue)){
+        return false;
+    }
+    return true;
+}
+
 // Record comparisons existence
 void Page::insertRec(Record & newRecord, std::vector<std::string>& remRec)
 {
@@ -125,6 +136,40 @@ vector<std::string> colNames)
     res.push_back(record);
     manager.writeCSV(res);
     totalRecords++;
+}
+
+bool Page::updateRec(std::any keyVal,std::unordered_map<std::string, std::any> newVals, std::unordered_map<std::string, std::string> types, std::string keyCol)
+{
+    std::vector<std::vector<std::string>> res;
+    std::vector<std::vector<std::string>> fileLines = manager.readCSV();
+    res.push_back(fileLines[0]);
+    bool isUpdated = false;
+    int i = 1;
+    while(!isUpdated && i < fileLines.size()){
+         std::vector<std::pair<std::string,std::string>> values;
+        for(int j = 0 ; j < fileLines[0].size(); j++){
+            // matching column name to its corresponding value in each record
+            values.push_back({fileLines[0][j],fileLines[i][j]});
+        }
+        // Record object is destroyed in every iteration
+        Record record = Record(types,values,keyCol);
+        if(isEqual(record.getVals().at(record.getClusteringKey()),keyVal)){
+            // alternative: this operation could be done inside record class and only an encapsulated version is presented in the page class
+                record.setVals(newVals);
+                isUpdated = true;
+        }
+        res.push_back(record.toString(fileLines[0]));
+        i++;
+    }
+
+    // if a column does not exist as a key in vals attribute of record
+    // then it has no value (set into null)
+    while(i < fileLines.size()){
+        res.push_back(fileLines[i]);
+        i++;
+    }
+    manager.writeCSV(res);
+    return isUpdated;
 }
 
 const std::vector<std::string> Page::toString(std::string tableName)
