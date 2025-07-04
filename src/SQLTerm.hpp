@@ -5,6 +5,8 @@
 struct SQLTerm {
     std::string _strTableName;
     std::string _strColumnName;
+    // acceptable operators: >, >=, <, <=, != or =
     std::string _strOperator;
-    std::any _objValue;
+    // acceptable value types: int, string, double or Date 
+    std::any _objValue; 
 };

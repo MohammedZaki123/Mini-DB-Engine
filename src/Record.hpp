@@ -12,7 +12,7 @@ class Record {
 
     // Constructor 1: Takes vectors of columns and values
     public:
-    Record( std::unordered_map<std::string, std::string>& types,
+    Record(const  std::unordered_map<std::string, std::string>& types,
            std::vector<std::pair<std::string, std::string>>& values, std::string key);
             // turning every value to its correct datatype based on column type map which
             //  stores column as the key and datatype string as a value

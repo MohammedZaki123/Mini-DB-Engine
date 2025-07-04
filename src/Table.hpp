@@ -5,7 +5,7 @@
 #include <any>
 # include "FileManager.hpp"
 # include "Page.hpp"
-
+# include "SQLTerm.hpp"
 // Forward declaration
 
 class Table {
@@ -31,12 +31,14 @@ public:
     void insertRecord(const std::unordered_map<std::string, std::any>& values);
     bool  updateRecord(const std::unordered_map<std::string, std::any>& values, const std::string strClusteringKeyValue);
     void updateFilesInfo(std::vector<Page> &pages, int first, int last);
+    std::vector<std::unordered_map<std::string, std::any>> retreiveResults(const std::vector<SQLTerm> &sqlTerms, const std::vector<std::string> &logicalOperators);
     const std::string& getName() const;
     const std::string& getClusteringKey() const;
     const std::unordered_map<std::string, std::string>& getColumnTypes() const;
-    const std::unordered_map<std::string, std::any>& getColumnMin() const;
+    const std::unordered_map<std::string,       std::any>& getColumnMin() const;
     const std::unordered_map<std::string, std::any>& getColumnMax() const;
     const std::unordered_map<std::string, Index*>& getIndexColumns() const;
+    const std::vector<std::string> getColNames();
     FileManager* getFileManager() const;
 
 

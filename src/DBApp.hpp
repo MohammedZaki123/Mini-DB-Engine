@@ -20,7 +20,9 @@
 class DBApp {
     FileManager * diskinfomgr;
     FileManager * metadatamgr;
-    std::vector<std::string> datatypes;  
+    std::vector<std::string> datatypes;
+    std::vector<std::string> logicalOperators;
+    std::vector<std::string> comparisonOperators;
 public:
     // Creates a table with the given schema and constraints
     DBApp();
@@ -60,9 +62,9 @@ public:
     );
 
     // Selects rows that satisfy SQLTerm conditions combined with operators
-    std::vector<std::unordered_map<std::string, std::any>> selectFromTable(
+    void selectFromTable(
         const std::vector<SQLTerm>& sqlTerms,
         const std::vector<std::string>& logicalOperators
     );
-
+    void printResults(std::vector<std::unordered_map<std::string, std::any>> res);
 };

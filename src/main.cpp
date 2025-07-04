@@ -6,7 +6,6 @@
 # include "DBApp.hpp"
 # include "SQLTerm.hpp"
 # include "iostream"
-# include <chrono>
 # include "Date.hpp"
 
 // void write_csv(std::string filename, std::vector<std::pair<std::string, std::vector<int>>> dataset){
@@ -119,7 +118,7 @@ int main() {
     DBApp dbApp;
     dbApp.init();
     // Define table schema (column name → data type)
-    std::string strTableName = "Student";
+    // std::string strTableName = "Student";
     // std::unordered_map<std::string, std::string> htblColNameType;
     // htblColNameType["id"] = "Integer";
     // htblColNameType["name"] = "String";
@@ -145,7 +144,7 @@ int main() {
     // dbApp.createIndex(strTableName, {"gpa"});
 
     // Insert rows
-    std::unordered_map<std::string, std::any> htblColNameValue;
+    // std::unordered_map<std::string, std::any> htblColNameValue;
 
     // htblColNameValue["id"] = 80;
     // htblColNameValue["name"] = std::string("Obama");
@@ -157,15 +156,17 @@ int main() {
     //     std::cout << e.what() << std::endl;
     // }
     // htblColNameValue["id"] = 30;
-    std::string clusteringKeyValue = "80";
-    htblColNameValue["id"] = 80;
-    htblColNameValue["gpa"] = 2.2;
-    htblColNameValue["DateOfBirth"] = Date("2020-9-15");
-    try{
-        dbApp.updateTable(strTableName,clusteringKeyValue,htblColNameValue);
-    }catch(DBAppException e){
-        std::cout << e.what() << std::endl;
-    }
+    // std::string clusteringKeyValue = "80";
+    // htblColNameValue["id"] = 80;
+    // htblColNameValue["gpa"] = 2.2;
+    // htblColNameValue["DateOfBirth"] = Date("2020-9-15");
+    // try{
+    //     dbApp.updateTable(strTableName,clusteringKeyValue,htblColNameValue);
+    // }catch(DBAppException e){
+    //     std::cout << e.what() << std::endl;
+    // }
+
+
 
     // htblColNameValue.clear();
     // htblColNameValue["id"] = 453455;
@@ -192,21 +193,25 @@ int main() {
     // dbApp.insertIntoTable(strTableName, htblColNameValue);
 
     // // Build SELECT query
-    // std::vector<SQLTerm> arrSQLTerms(2);
-    // arrSQLTerms[0]._strTableName = "Student";
-    // arrSQLTerms[0]._strColumnName = "name";
-    // arrSQLTerms[0]._strOperator = "=";
-    // arrSQLTerms[0]._objValue = std::string("John Noor");
+    std::vector<SQLTerm> arrSQLTerms(1);
 
-    // arrSQLTerms[1]._strTableName = "Student";
-    // arrSQLTerms[1]._strColumnName = "gpa";
-    // arrSQLTerms[1]._strOperator = "=";
-    // arrSQLTerms[1]._objValue = 1.5;
+    arrSQLTerms[0]._strTableName = "Student";
+    arrSQLTerms[0]._strColumnName = "DateOfBirth";
+    arrSQLTerms[0]._strOperator = "=";
+    arrSQLTerms[0]._objValue = Date("2002-6-21");
 
-    // std::vector<std::string> strarrOperators = {"OR"};
+    // Assuming input meets SQL Operator Precendence
+    // NOT > AND > XOR > OR    
+    std::vector<std::string> strarrOperators = {};
 
     // // Execute SELECT
-    // auto resultSet = dbApp.selectFromTable(arrSQLTerms, strarrOperators);
+    try{
+        dbApp.selectFromTable(arrSQLTerms, strarrOperators);
+    }catch(DBAppException e){
+        std::cout << e.what() << std::endl;
+    }
+
+    
 
     // // Iterate and print results
     // for (const auto& row : resultSet) {

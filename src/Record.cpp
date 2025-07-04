@@ -1,7 +1,7 @@
 # include "Record.hpp"
 # include "Transformation.hpp"
 
-Record::Record(std::unordered_map<std::string, std::string> &types, std::vector<std::pair<std::string, std::string>>& values, std::string key)
+Record::Record(const std::unordered_map<std::string, std::string> &types, std::vector<std::pair<std::string, std::string>>& values, std::string key)
 {
     // Nullable value edge case is required
     for(int i = 0 ; i < values.size() ; i++){

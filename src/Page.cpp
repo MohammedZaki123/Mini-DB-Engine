@@ -2,6 +2,7 @@
 # include "Exception.hpp"
 # include "Transformation.hpp"                                                                                                                                      
 # include "DBApp.config"
+# include "Evaluator.hpp"
 
 // Used when creating a Page object for a page that exist in filesInfo disk file
 Page::Page(std::string name, std::string pkType, std::string pkColName)
@@ -170,6 +171,27 @@ bool Page::updateRec(std::any keyVal,std::unordered_map<std::string, std::any> n
     }
     manager.writeCSV(res);
     return isUpdated;
+}
+
+void Page::fetchRecords(const std::unordered_map<std::string, std::string> types ,const std::vector<SQLTerm> &terms, const std::vector<std::string> operators, std::vector<std::unordered_map<std::string, std::any>> &tuples, std::string keyCol)
+{
+    std::vector<std::vector<std::string>> fileLines = manager.readCSV();
+    int i = 1;
+    Evaluator evaluator = Evaluator(terms,operators);
+    while(i < fileLines.size()){
+        std::vector<std::pair<std::string,std::string>> values;
+        for(int j = 0 ; j < fileLines[0].size(); j++){
+            // matching column name to its corresponding value in each record
+            values.push_back({fileLines[0][j],fileLines[i][j]});
+        }
+        // Record object is destroyed in every iteration
+        Record record = Record(types,values,keyCol);
+        if(evaluator.formTheDecision(record)){
+            // record is accepeted within query constraints
+            tuples.push_back(record.getVals());
+        }
+        i++;
+    }
 }
 
 const std::vector<std::string> Page::toString(std::string tableName)

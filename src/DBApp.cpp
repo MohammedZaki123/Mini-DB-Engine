@@ -6,9 +6,13 @@
 # include <algorithm>
 # include <cctype>
 # include <iostream>
+# include <set>
+#include <iomanip>
 DBApp::DBApp()
 {
     datatypes = {"Integer", "String", "Double", "Date"};
+    logicalOperators = {"AND","OR","XOR"};
+    comparisonOperators = {">",">=","<", "<=","!=","="};
 }
 void DBApp::init(){
    Factory  objectCreator = Factory();
@@ -156,15 +160,109 @@ void DBApp::updateTable(const std::string &tableName, const std::string strClust
 
 void DBApp::deleteFromTable(const std::string &tableName, const std::unordered_map<std::string, std::any> &colNameValue)
 {
+
 }
 
-std::vector<std::unordered_map<std::string, std::any>> DBApp::selectFromTable(const std::vector<SQLTerm> &sqlTerms, const std::vector<std::string> &logicalOperators)
+void DBApp::selectFromTable(const std::vector<SQLTerm> &sqlTerms, const std::vector<std::string> &Operators)
 {
-    return std::vector<std::unordered_map<std::string, std::any>>();
+    std::vector<std::vector<std::string>> fileOut = metadatamgr->readCSV(sqlTerms[0]._strTableName);
+     if(fileOut.empty()){
+        throw DBAppException("Table " + sqlTerms[0]._strTableName + " does not exist in the database");
+    }
+    Table table = Table(fileOut,diskinfomgr);
+    for(SQLTerm term: sqlTerms){
+        if(!table.getColumnTypes().count(term._strColumnName)){
+            throw DBAppException("column with the name " + term._strColumnName + " does not exist in the table " + term._strTableName);
+        }
+        if(!std::count(comparisonOperators.begin(),comparisonOperators.end(),term._strOperator)){
+            throw DBAppException("operator " + term._strOperator + " is not identified as an operator");
+        }
+        if(!isTypeCompatible(term._objValue,table.getColumnTypes().at(term._strColumnName))){
+            throw DBAppException("input value type is not compatible with the column " + term._strColumnName);
+        }
+        if(isLessThan(term._objValue, table.getColumnMin().at(term._strColumnName))){
+            throw DBAppException("input value is less than min value of column " + term._strColumnName);
+        }
+        if(isMoreThan(term._objValue,table.getColumnMax().at(term._strColumnName))){
+            throw DBAppException("input value is more than max value of column " + term._strColumnName);
+        }
+    }
+    for(std::string op: Operators){
+       if(!std::count(logicalOperators.begin(),logicalOperators.end(),op)){
+        throw DBAppException("Operator " + op + " is undefined behavior");
+       }    
+    }
+    std::vector<std::unordered_map<std::string, std::any>> queryResult = table.retreiveResults(sqlTerms,Operators);
+    printResults(queryResult);
+    // return std::vector<std::unordered_map<std::string, std::any>>();
+    delete diskinfomgr;
+    delete metadatamgr;
 }
 
+// function is copied from AI agent (Not yet tested or debugged)
+void DBApp::printResults(std::vector<std::unordered_map<std::string, std::any>> res){
+    if (res.empty()) {
+        std::cout << "No results found.\n";
+        return;
+    }
 
+    // 1. Collect all column names (sorted to maintain consistency)
+    std::vector<std::string> columns;
+    std::set<std::string> colSet;
+    for (const auto& row : res) {
+        for (const auto& pair : row) {
+            if (colSet.insert(pair.first).second) {
+                columns.push_back(pair.first);
+            }   
+        }
+    }
 
+    // 2. Determine max width for each column
+    std::unordered_map<std::string, size_t> colWidths;
+    for (const auto& col : columns) {
+        colWidths[col] = col.size(); // Start with header size
+    }
 
+    for (const auto& row : res) {
+        for (const auto& col : columns) {
+            auto it = row.find(col);
+            if (it != row.end()) {
+                std::string valStr = toStr(it->second);
+                colWidths[col] = std::max(colWidths[col], valStr.size());
+            }
+        }
+    }
 
+    // Helper lambda to print a border row
+    auto printBorder = [&]() {
+        std::cout << "+";
+        for (const auto& col : columns) {
+            std::cout << std::string(colWidths[col] + 2, '-') << "+";
+        }
+        std::cout << '\n';
+    };
 
+    // Helper lambda to print a row of values
+    auto printRow = [&](const std::unordered_map<std::string, std::any>& row) {
+        std::cout << "|";
+        for (const auto& col : columns) {
+            std::string val = row.count(col) ? toStr(row.at(col)) : "";
+            std::cout << " " << std::setw(colWidths[col]) << std::left << val << " |";
+        }
+        std::cout << '\n';
+    };
+
+    // 3. Print header
+    printBorder();
+    std::unordered_map<std::string, std::any> headerRow;
+    for (const auto& col : columns) 
+        headerRow[col] = col;
+    printRow(headerRow);
+    printBorder();
+
+    // 4. Print all rows
+    for (const auto& row : res) {
+        printRow(row);
+    }
+    printBorder();
+}

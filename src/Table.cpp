@@ -46,7 +46,7 @@ void Table::insertRecord(const std::unordered_map<std::string, std::any> &values
             break;
         }
         i++;
-    }
+    }   
     // record cannot be inserted in any page, no existing page will be affected
     if(i == pages.size()){
         // No space for newrecord in any page
@@ -122,7 +122,26 @@ bool Table::updateRecord(const std::unordered_map<std::string, std::any> &values
 //     manager->writeCSV(lines);
 // }
 
-// --- Getters ---  
+std::vector<std::unordered_map<std::string, std::any>> Table::retreiveResults(const std::vector<SQLTerm> &sqlTerms, const std::vector<std::string> &logicalOperators)
+{
+    std::vector<std::unordered_map<std::string, std::any>> res;
+    std::vector<std::vector<std::string>> linesOfPages = manager->readCSV(name);
+   if(linesOfPages.empty()){
+    return res;
+   }
+   std::vector<Page> pages;
+   for(std::vector<std::string> line: linesOfPages){
+        Page p = Page(line[2],columnTypes.at(clusteringKey),clusteringKey);
+        pages.push_back(p);
+    }
+    for(Page p: pages){
+        // full table scan without the use of indices
+        p.fetchRecords(columnTypes,sqlTerms,logicalOperators, res,clusteringKey);
+    }
+    return res;
+}
+
+// --- Getters ---
 const std::string& Table::getName() const {
     return name;
 }
@@ -145,6 +164,11 @@ const std::unordered_map<std::string, std::any>& Table::getColumnMax() const {
 
 const std::unordered_map<std::string, Index*>& Table::getIndexColumns() const {
     return indexColumns;
+}
+
+const std::vector<std::string> Table::getColNames()
+{
+    return colNames;
 }
 
 FileManager* Table::getFileManager() const {

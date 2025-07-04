@@ -4,6 +4,7 @@
 # include "FileManager.hpp"
 # include <string>
 # include <vector>
+# include "SQLTerm.hpp"
 class Page {
 private:
     std::string name;
@@ -25,6 +26,7 @@ public:
     void shiftRec(std::vector<std::string>& record);  
     void insertRec(std::vector<std::string> record, std::vector<std::string> colNames);
     bool updateRec(std::any keyVal, std::unordered_map<std::string, std::any> newVals, std::unordered_map<std::string, std::string> types, std::string keyCol);
+    void fetchRecords(const std::unordered_map<std::string, std::string> types   ,const std::vector<SQLTerm> & terms,const  std::vector<std::string> operators, std::vector<std::unordered_map<std::string, std::any>>& tuples, std::string keyCol);
     const std::vector<std::string> toString(std::string tableName);
     // Getters
     const std::string& getName() const { return name; }
