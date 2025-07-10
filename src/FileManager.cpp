@@ -1,7 +1,4 @@
 # include "FileManager.hpp"
-# include <filesystem>
-# include <fstream>
-# include <iostream>
 void MetaDataManager::createFile(){
     if(std::filesystem::exists(filePath)){
         return; 
@@ -50,6 +47,54 @@ void DiskInfoManager::createFile(){
 
     file << "\n";
     file.close();
+}
+
+void DiskInfoManager::deletePages(const std::unordered_set<std::string>& pageNames) {
+    std::ifstream inFile(filePath);
+    if (!inFile.is_open()) {
+        throw std::runtime_error("Failed to open Files.csv for reading.");
+    }
+
+    std::vector<std::vector<std::string>> newVersion;
+    std::string line;
+
+    while (std::getline(inFile, line)) {
+        std::stringstream ss(line);
+        std::string cell;
+        std::vector<std::string> row;
+
+        while (std::getline(ss, cell, ',')) {
+            row.push_back(cell);
+        }
+
+        if (newVersion.empty()) {
+            newVersion.push_back(row);
+            continue;
+        }
+
+        if (!pageNames.count(row[2])) {
+            newVersion.push_back(row);
+        }
+    }
+
+    inFile.close();
+
+    // Write new version back to the file
+    std::ofstream outFile(filePath, std::ios::trunc);
+    if (!outFile.is_open()) {
+        throw std::runtime_error("Failed to open Files.csv for writing.");
+    }
+
+    for (const auto& row : newVersion) {
+        for (size_t i = 0; i < row.size(); ++i) {
+            outFile << row[i];
+            if (i < row.size() - 1)
+                outFile << ',';
+        }
+        outFile << '\n';
+    }
+
+    outFile.close();
 }
 
 MetaDataManager::MetaDataManager(){
@@ -376,6 +421,22 @@ void PageManager::createFile(std::vector<std::string> columns)
 
     file << "\n";
     file.close();
+}
+
+void PageManager::deleteFile()
+{
+    try {
+        if (std::filesystem::exists(filePath)) {
+            bool removed = std::filesystem::remove(filePath);
+            if (!removed) {
+                throw std::runtime_error("Failed to delete file: " + filePath);
+            }
+        } else {
+            std::cerr << "Warning: File does not exist -> " << filePath << '\n';
+        }
+    } catch (const std::filesystem::filesystem_error& e) {
+        throw std::runtime_error("Filesystem error while deleting file: " + std::string(e.what()));
+    }
 }
 
 std::vector<std::string> PageManager::loadPageInfo(std::string pkCol)

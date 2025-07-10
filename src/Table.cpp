@@ -1,13 +1,12 @@
 #include "Table.hpp"
-# include "Record.hpp"
-# include "Transformation.hpp"
 
 Table::Table(std::vector<std::vector<std::string>> lines, FileManager * mgr): manager(mgr)
 {
+    Transformer trans;
     this->name = lines[0][0];
     for(int i = 0; i < lines.size(); i++){
-        std::any minValue = fromStr(lines[i][2],lines[i][6]);
-        std::any maxValue = fromStr(lines[i][2],lines[i][7]);
+        std::any minValue = trans.fromStr(lines[i][2],lines[i][6]);
+        std::any maxValue = trans.fromStr(lines[i][2],lines[i][7]);
         columnTypes.emplace(lines[i][1],lines[i][2]);
         columnMin.emplace(lines[i][1],minValue);
         columnMax.emplace(lines[i][1],maxValue);
@@ -95,7 +94,8 @@ bool Table::updateRecord(const std::unordered_map<std::string, std::any> &values
    if(linesOfPages.empty()){
     return isUpdated;
    }
-   std::any keyValue = fromStr(columnTypes.at(clusteringKey),strClusteringKeyValue);
+   Transformer trans;
+   std::any keyValue = trans.fromStr(columnTypes.at(clusteringKey),strClusteringKeyValue);
    std::vector<Page> pages;
    for(std::vector<std::string> line: linesOfPages){
         Page p = Page(line[2],columnTypes.at(clusteringKey),clusteringKey);
@@ -139,6 +139,61 @@ std::vector<std::unordered_map<std::string, std::any>> Table::retreiveResults(co
         p.fetchRecords(columnTypes,sqlTerms,logicalOperators, res,clusteringKey);
     }
     return res;
+}
+
+int Table::deleteRecords(std::unordered_map<std::string, std::any> vals)
+{
+    std::vector<std::vector<std::string>> linesOfPages = manager->readCSV(name);
+    std::unordered_set<std::string> delPageNames;
+    int deletedRows = 0;
+   if(linesOfPages.empty()){
+    return deletedRows;
+   }
+   std::vector<Page> pages;
+   for(std::vector<std::string> line: linesOfPages){
+        Page p = Page(line[2],columnTypes.at(clusteringKey),clusteringKey);
+        pages.push_back(p);
+   }
+    for(Page & p: pages){
+        p.eraseRecs(columnTypes,vals,deletedRows);
+    }
+    int i = 0;
+    while(i < pages.size()){
+        int j = i + 1;
+        bool isFilled = false;
+        while(j < pages.size() ){
+           isFilled = pages[i].fillGaps(pages[j]);
+           if(isFilled){
+            // if this condition returns true that means all deleted records
+            // of the page are filled with records from other pages
+            // OR pages has no records deleted at all
+            pages[i].reWrite();
+            break;
+           }
+           j++;
+        }
+        if(!isFilled){
+            // all subsequent pages must be deleted
+            // this page may also be deleted in the next iteration if 
+            break;
+        }
+        i++;
+    }
+
+    // to be deleted pages
+    while(i < pages.size()){
+        if(pages[i].getCurrRecs().size() == 0){
+            pages[i].terminatePage();
+            delPageNames.emplace(pages[i].getName());
+        }else{
+            pages[i].reWrite();
+        }
+        i++;
+    }
+    DiskInfoManager * info = dynamic_cast<DiskInfoManager*>(manager);
+    info->deletePages(delPageNames);
+    delete info;
+    return deletedRows;
 }
 
 // --- Getters ---

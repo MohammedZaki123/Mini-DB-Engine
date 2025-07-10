@@ -1,16 +1,14 @@
 #include "Page.hpp"
-# include "Exception.hpp"
-# include "Transformation.hpp"                                                                                                                                      
-# include "DBApp.config"
-# include "Evaluator.hpp"
+
 
 // Used when creating a Page object for a page that exist in filesInfo disk file
 Page::Page(std::string name, std::string pkType, std::string pkColName)
 :name(name), manager(PageManager(name)) 
 {
+    Transformer trans;
     std::vector <std::string> res = manager.loadPageInfo(pkColName);
-    minPKValue = fromStr(pkType,res[0]);
-    maxPKValue = fromStr(pkType,res[1]); 
+    minPKValue = trans.fromStr(pkType,res[0]);
+    maxPKValue = trans.fromStr(pkType,res[1]); 
     totalRecords = std::stoi(res[2]);
 }
 
@@ -25,14 +23,15 @@ name(tableName + std::to_string(noOfPages + 1) + ".csv"), manager(PageManager(na
 
 bool Page::isTarget(Record & record)
 {
+    Decider dec;
     std::any a = record.getVals().at(record.getClusteringKey());
     // if(isEqual(a,minPKValue) || isEqual(a,minPKValue)){
     //     throw DBAppException("Inserted primary key value already exist in the table");
     // }
-    if(isLessThan(a,minPKValue)){
+    if(dec.isLessThan(a,minPKValue)){
         return true;
     }
-    if(isMoreThan(a,maxPKValue)){
+    if(dec.isMoreThan(a,maxPKValue)){
         return totalRecords < maxRowPerPage;
     }
     // The Value is in between min and max. So it is in the correct page
@@ -41,10 +40,11 @@ bool Page::isTarget(Record & record)
 
 bool Page::isTarget(std::any keyVal)
 {
-    if(isLessThan(keyVal,minPKValue)){
+    Decider dec;
+    if(dec.isLessThan(keyVal,minPKValue)){
         return false;
     }
-    else if(isMoreThan(keyVal,maxPKValue)){
+    else if(dec.isMoreThan(keyVal,maxPKValue)){
         return false;
     }
     return true;
@@ -141,6 +141,7 @@ vector<std::string> colNames)
 
 bool Page::updateRec(std::any keyVal,std::unordered_map<std::string, std::any> newVals, std::unordered_map<std::string, std::string> types, std::string keyCol)
 {
+    Decider dec;
     std::vector<std::vector<std::string>> res;
     std::vector<std::vector<std::string>> fileLines = manager.readCSV();
     res.push_back(fileLines[0]);
@@ -154,7 +155,7 @@ bool Page::updateRec(std::any keyVal,std::unordered_map<std::string, std::any> n
         }
         // Record object is destroyed in every iteration
         Record record = Record(types,values,keyCol);
-        if(isEqual(record.getVals().at(record.getClusteringKey()),keyVal)){
+        if(dec.isEqual(record.getVals().at(record.getClusteringKey()),keyVal)){
             // alternative: this operation could be done inside record class and only an encapsulated version is presented in the page class
                 record.setVals(newVals);
                 isUpdated = true;
@@ -187,11 +188,78 @@ void Page::fetchRecords(const std::unordered_map<std::string, std::string> types
         // Record object is destroyed in every iteration
         Record record = Record(types,values,keyCol);
         if(evaluator.formTheDecision(record)){
-            // record is accepeted within query constraints
+        // record is accepted within query constraints
             tuples.push_back(record.getVals());
         }
         i++;
     }
+}
+
+void Page::eraseRecs(const std::unordered_map<std::string, std::string> types , const std::unordered_map<std::string, std::any> deleteConditions, int& deletedRecs)
+{
+    Decider dec;
+    std::vector<std::vector<std::string>> fileLines = manager.readCSV();
+    finalRecs.push_back(fileLines[0]);
+     // Read all records from page
+    for (int i = 1; i < fileLines.size(); ++i) { // Skip header if present
+        std::vector<std::pair<std::string,std::string>> values;
+        for(int j = 0 ; j < fileLines[0].size(); j++){
+            // matching column name to its corresponding value in each record
+            values.push_back({fileLines[0][j],fileLines[i][j]});
+        }
+        // Record object is destroyed in every iteration
+        Record record = Record(types,values);
+        const auto& recordVals = record.getVals();
+
+        bool shouldDelete = false;
+
+        // Iterate over all delete condition keys
+        for (const auto& [key, valueToDelete] : deleteConditions) {
+            auto it = recordVals.find(key);
+            if (it != recordVals.end() && dec.isEqual(it->second, valueToDelete)) {
+                shouldDelete = true;
+                break; // Early exit: one match is enough to delete
+            }
+        }
+
+        if (shouldDelete) {
+            ++deletedRecs;
+        } else {
+            currRecs.push(record.toString(fileLines[0]));
+        }
+    }
+
+}
+
+bool Page::fillGaps(Page &page)
+{
+    
+    // Loop is only for all pages except last one
+    while (!page.getCurrRecs().empty() && (this->totalRecords - this->currRecs.size() > 0)) {
+        std::vector<std::string> pulledRecord = page.getCurrRecs().front();
+        // page.currRecs.pop();
+        page.popCurrRecs();
+        this->currRecs.push(pulledRecord);
+    }
+
+    // All deleted records of the page are filled from subsequent pages
+    // OR pages has no deleted records at all 
+    return totalRecords - currRecs.size() == 0;
+}
+
+void Page::terminatePage()
+{
+    manager.deleteFile();
+}
+
+void Page::reWrite()
+{
+      while(!currRecs.empty()){
+        std::vector<std::string> rec = currRecs.front();
+        currRecs.pop();
+        finalRecs.push_back(rec);
+    }
+    manager.writeCSV(finalRecs);
 }
 
 const std::vector<std::string> Page::toString(std::string tableName)
@@ -202,4 +270,14 @@ const std::vector<std::string> Page::toString(std::string tableName)
     result.push_back(name);
     result.push_back(manager.getPath());
     return result;
+}
+
+  std::queue<std::vector<std::string>> Page::getCurrRecs()
+{
+    return currRecs;
+}
+
+void Page::popCurrRecs()
+{
+    currRecs.pop();
 }

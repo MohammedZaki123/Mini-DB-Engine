@@ -1,13 +1,4 @@
 #include "DBApp.hpp"
-# include "FactoryObjectCreation.hpp"
-# include <typeindex>
-# include "Transformation.hpp"
-# include "Table.hpp"
-# include <algorithm>
-# include <cctype>
-# include <iostream>
-# include <set>
-#include <iomanip>
 DBApp::DBApp()
 {
     datatypes = {"Integer", "String", "Double", "Date"};
@@ -26,6 +17,8 @@ void DBApp::createTable( std::string &tableName, const std::string &clusteringKe
 {
     std::vector<std::vector<std::string>> inputs; 
     MetaDataManager * mgr = dynamic_cast<MetaDataManager*>(this->metadatamgr);
+    Decider dec;
+    Transformer trans;
     if(mgr->checkExistence(tableName)){
         throw DBAppException("A table is already created with the same name in the database");
     }
@@ -40,14 +33,14 @@ void DBApp::createTable( std::string &tableName, const std::string &clusteringKe
             throw DBAppException("a column " + i->first + " datatype is not within acceptable datatypes");
         }
         // std::any minVal = colNameMin.at(colName);   
-        if(!isTypeCompatible(colNameMin[i->first], type)){
+        if(!dec.isTypeCompatible(colNameMin[i->first], type)){
             throw DBAppException("The datatype of Min value of column " + i->first +  " is not compatible");
         }
-        if(!isTypeCompatible(colNameMax[i->first], type)){
+        if(!dec.isTypeCompatible(colNameMax[i->first], type)){
             throw DBAppException("The datatype of Max value of column " + i->first +  " is not compatible");
         }
         // No datatype transformation is needed since both min and max value should now have the same datatype
-        if(isMoreThan(colNameMin[i->first], colNameMax[i->first])){
+        if(dec.isMoreThan(colNameMin[i->first], colNameMax[i->first])){
                 throw DBAppException("The minimum value exceeds maximum value of column " + i ->first);
         }
         // adding all required info for metadata file for each column
@@ -64,9 +57,9 @@ void DBApp::createTable( std::string &tableName, const std::string &clusteringKe
          line.push_back("null");
          line.push_back("null");
         // to be continued 
-        std::string minStr = toStr(colNameMin[i->first]);
+        std::string minStr = trans.toStr(colNameMin[i->first]);
         line.push_back(minStr);
-        std::string maxStr = toStr(colNameMax[i->first]);
+        std::string maxStr = trans.toStr(colNameMax[i->first]);
         line.push_back(maxStr);
         inputs.push_back(line);
     }
@@ -78,7 +71,7 @@ void DBApp::createTable( std::string &tableName, const std::string &clusteringKe
 
 void DBApp::createIndex(const std::string &tableName, const std::string &colName)
 {
-
+    
 }
 
 void DBApp::insertIntoTable(const std::string &tableName, std::unordered_map<std::string, std::any> &colNameValue)
@@ -88,6 +81,7 @@ void DBApp::insertIntoTable(const std::string &tableName, std::unordered_map<std
         throw DBAppException("Table " + tableName + " does not exist in the database");
     }
     Table table = Table(fileOut,diskinfomgr);
+    Decider dec;
     if(colNameValue.count(table.getClusteringKey()) == 0){
             throw DBAppException("Primary Key must not be null in any inserted record");
     }
@@ -98,15 +92,15 @@ void DBApp::insertIntoTable(const std::string &tableName, std::unordered_map<std
             throw DBAppException("Column " + colName + " does not exist in the table " + tableName);
         }
         std::string type = table.getColumnTypes().at(colName);
-        if(!isTypeCompatible(i->second,type)){
+        if(!dec.isTypeCompatible(i->second,type)){
             throw DBAppException("The datatype of value of column " + i->first +  " is not compatible");
         }
         std::any minValue = table.getColumnMin().at(i->first);
         std::any maxValue = table.getColumnMax().at(i->first);
-        if(isLessThan(i->second,minValue)){
+        if(dec.isLessThan(i->second,minValue)){
             throw DBAppException("To be inserted value is lower than minimum value of column " + i->first);
         }
-        if(isMoreThan(i->second,maxValue)){
+        if(dec.isMoreThan(i->second,maxValue)){
             throw DBAppException("To be inserted value is higher than maximum value of column " + i->first);
         }
      }
@@ -124,6 +118,7 @@ void DBApp::updateTable(const std::string &tableName, const std::string strClust
         throw DBAppException("Table " + tableName + " does not exist in the database");
     }
     Table  table = Table(fileOut,diskinfomgr);
+    Decider dec;
     if(colNameValue.count(table.getClusteringKey())){
             throw DBAppException("Clustering Key column " + table.getClusteringKey() + " value cannot be altered");
     }
@@ -134,15 +129,15 @@ void DBApp::updateTable(const std::string &tableName, const std::string strClust
             throw DBAppException("Column " + colName + " does not exist in the table " + tableName);
         }
         std::string type = table.getColumnTypes().at(colName);
-        if(!isTypeCompatible(i->second,type)){
+        if(!dec.isTypeCompatible(i->second,type)){
             throw DBAppException("The datatype of value of column " + i->first +  " is not compatible");
         }
         std::any minValue = table.getColumnMin().at(i->first);
         std::any maxValue = table.getColumnMax().at(i->first);
-        if(isLessThan(i->second,minValue)){
+        if(dec.isLessThan(i->second,minValue)){
             throw DBAppException("To be inserted value is lower than minimum value of column " + i->first);
         }
-        if(isMoreThan(i->second,maxValue)){
+        if(dec.isMoreThan(i->second,maxValue)){
             throw DBAppException("To be inserted value is higher than maximum value of column " + i->first);
         }
      }
@@ -160,7 +155,29 @@ void DBApp::updateTable(const std::string &tableName, const std::string strClust
 
 void DBApp::deleteFromTable(const std::string &tableName, const std::unordered_map<std::string, std::any> &colNameValue)
 {
-
+     std::vector<std::vector<std::string>> fileOut = metadatamgr->readCSV(tableName);
+    if(fileOut.empty()){
+        throw DBAppException("Table " + tableName + " does not exist in the database");
+    }
+    Decider dec;
+    Table  table = Table(fileOut,diskinfomgr);
+      for(auto i = colNameValue.begin() ; i != colNameValue.end(); i++){
+        std::string colName = i->first;
+        // std::transform(colName.begin(),colName.end(),colName.begin(), ::tolower);       
+        if(table.getColumnTypes().find(colName) == table.getColumnTypes().end()){
+            throw DBAppException("Column " + colName + " does not exist in the table " + tableName);
+        }
+        std::string type = table.getColumnTypes().at(colName);
+        if(!dec.isTypeCompatible(i->second,type)){
+            throw DBAppException("The datatype of value of column " + i->first +  " is not compatible");
+        }
+    }
+    int val = table.deleteRecords(colNameValue);
+    if(val == 1){
+        std::cout << val << " row is affected" << std::endl;
+    }else{
+        std::cout << val << " rows are affected" << std::endl;
+    }
 }
 
 void DBApp::selectFromTable(const std::vector<SQLTerm> &sqlTerms, const std::vector<std::string> &Operators)
@@ -169,6 +186,7 @@ void DBApp::selectFromTable(const std::vector<SQLTerm> &sqlTerms, const std::vec
      if(fileOut.empty()){
         throw DBAppException("Table " + sqlTerms[0]._strTableName + " does not exist in the database");
     }
+    Decider dec;
     Table table = Table(fileOut,diskinfomgr);
     for(SQLTerm term: sqlTerms){
         if(!table.getColumnTypes().count(term._strColumnName)){
@@ -177,13 +195,13 @@ void DBApp::selectFromTable(const std::vector<SQLTerm> &sqlTerms, const std::vec
         if(!std::count(comparisonOperators.begin(),comparisonOperators.end(),term._strOperator)){
             throw DBAppException("operator " + term._strOperator + " is not identified as an operator");
         }
-        if(!isTypeCompatible(term._objValue,table.getColumnTypes().at(term._strColumnName))){
+        if(!dec.isTypeCompatible(term._objValue,table.getColumnTypes().at(term._strColumnName))){
             throw DBAppException("input value type is not compatible with the column " + term._strColumnName);
         }
-        if(isLessThan(term._objValue, table.getColumnMin().at(term._strColumnName))){
+        if(dec.isLessThan(term._objValue, table.getColumnMin().at(term._strColumnName))){
             throw DBAppException("input value is less than min value of column " + term._strColumnName);
         }
-        if(isMoreThan(term._objValue,table.getColumnMax().at(term._strColumnName))){
+        if(dec.isMoreThan(term._objValue,table.getColumnMax().at(term._strColumnName))){
             throw DBAppException("input value is more than max value of column " + term._strColumnName);
         }
     }
@@ -205,10 +223,11 @@ void DBApp::printResults(std::vector<std::unordered_map<std::string, std::any>> 
         std::cout << "No results found.\n";
         return;
     }
-
+    Transformer trans; 
     // 1. Collect all column names (sorted to maintain consistency)
     std::vector<std::string> columns;
     std::set<std::string> colSet;
+
     for (const auto& row : res) {
         for (const auto& pair : row) {
             if (colSet.insert(pair.first).second) {
@@ -227,7 +246,7 @@ void DBApp::printResults(std::vector<std::unordered_map<std::string, std::any>> 
         for (const auto& col : columns) {
             auto it = row.find(col);
             if (it != row.end()) {
-                std::string valStr = toStr(it->second);
+                std::string valStr = trans.toStr(it->second);
                 colWidths[col] = std::max(colWidths[col], valStr.size());
             }
         }
@@ -246,7 +265,7 @@ void DBApp::printResults(std::vector<std::unordered_map<std::string, std::any>> 
     auto printRow = [&](const std::unordered_map<std::string, std::any>& row) {
         std::cout << "|";
         for (const auto& col : columns) {
-            std::string val = row.count(col) ? toStr(row.at(col)) : "";
+            std::string val = row.count(col) ? trans.toStr(row.at(col)) : "";
             std::cout << " " << std::setw(colWidths[col]) << std::left << val << " |";
         }
         std::cout << '\n';

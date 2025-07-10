@@ -2,6 +2,7 @@
 # include "Record.hpp"
 # include <string>
 # include <vector>
+# include "Decider.hpp"
 // # include <any>
 class Evaluator{
     std::vector<SQLTerm> sqlTerms;

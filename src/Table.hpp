@@ -1,11 +1,7 @@
 #pragma once
 # include "Index.hpp"
-#include <string>
-#include <unordered_map>
-#include <any>
-# include "FileManager.hpp"
 # include "Page.hpp"
-# include "SQLTerm.hpp"
+
 // Forward declaration
 
 class Table {
@@ -32,6 +28,7 @@ public:
     bool  updateRecord(const std::unordered_map<std::string, std::any>& values, const std::string strClusteringKeyValue);
     void updateFilesInfo(std::vector<Page> &pages, int first, int last);
     std::vector<std::unordered_map<std::string, std::any>> retreiveResults(const std::vector<SQLTerm> &sqlTerms, const std::vector<std::string> &logicalOperators);
+    int deleteRecords(std::unordered_map<std::string, std::any> val);
     const std::string& getName() const;
     const std::string& getClusteringKey() const;
     const std::unordered_map<std::string, std::string>& getColumnTypes() const;

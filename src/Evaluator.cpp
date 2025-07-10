@@ -1,21 +1,21 @@
 #include "Evaluator.hpp"
-# include "Transformation.hpp"
 
 bool Evaluator::getSingularDecision(std::string opt, std::any objVal, std::any colVal)
 {
+    Decider dec;
     bool singleDecision = false;
     if(opt == ">"){
-        singleDecision = isMoreThan(colVal,objVal);
+        singleDecision = dec.isMoreThan(colVal,objVal);
     }else if(opt == ">="){
-        singleDecision = isMoreThan(colVal, objVal) or isEqual(colVal,objVal);
+        singleDecision = dec.isMoreThan(colVal, objVal) or dec.isEqual(colVal,objVal);
     }else if(opt == "<"){
-        singleDecision = isLessThan(colVal, objVal) ;
+        singleDecision = dec.isLessThan(colVal, objVal) ;
     }else if(opt == "<="){
-        singleDecision = isLessThan(colVal,objVal) or isEqual(colVal,objVal);
+        singleDecision = dec.isLessThan(colVal,objVal) or dec.isEqual(colVal,objVal);
     }else if(opt == "!="){
-        singleDecision = !isEqual(colVal,objVal);
+        singleDecision = !dec.isEqual(colVal,objVal);
     }else{
-        singleDecision = isEqual(colVal,objVal);
+        singleDecision = dec.isEqual(colVal,objVal);
     }
     return singleDecision;
 }

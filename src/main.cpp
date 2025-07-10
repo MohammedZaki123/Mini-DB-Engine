@@ -1,12 +1,12 @@
-#include <string>
-#include <fstream>
-#include <vector>
-#include <utility> // std::pair
-# include <unordered_map>
+// #include <string>
+// #include <fstream>
+// #include <vector>
+// #include <utility> // std::pair
+// # include <unordered_map>
 # include "DBApp.hpp"
-# include "SQLTerm.hpp"
-# include "iostream"
-# include "Date.hpp"
+// # include "SQLTerm.hpp"
+// # include "iostream"
+// # include "Date.hpp"
 
 // void write_csv(std::string filename, std::vector<std::pair<std::string, std::vector<int>>> dataset){
 //     // Make a CSV file with one or more columns of integer values
@@ -118,7 +118,7 @@ int main() {
     DBApp dbApp;
     dbApp.init();
     // Define table schema (column name → data type)
-    // std::string strTableName = "Student";
+    std::string strTableName = "Student";
     // std::unordered_map<std::string, std::string> htblColNameType;
     // htblColNameType["id"] = "Integer";
     // htblColNameType["name"] = "String";
@@ -144,7 +144,7 @@ int main() {
     // dbApp.createIndex(strTableName, {"gpa"});
 
     // Insert rows
-    // std::unordered_map<std::string, std::any> htblColNameValue;
+    std::unordered_map<std::string, std::any> htblColNameValue;
 
     // htblColNameValue["id"] = 80;
     // htblColNameValue["name"] = std::string("Obama");
@@ -166,7 +166,7 @@ int main() {
     //     std::cout << e.what() << std::endl;
     // }
 
-
+    
 
     // htblColNameValue.clear();
     // htblColNameValue["id"] = 453455;
@@ -193,37 +193,31 @@ int main() {
     // dbApp.insertIntoTable(strTableName, htblColNameValue);
 
     // // Build SELECT query
-    std::vector<SQLTerm> arrSQLTerms(1);
+    // std::vector<SQLTerm> arrSQLTerms(1);
 
-    arrSQLTerms[0]._strTableName = "Student";
-    arrSQLTerms[0]._strColumnName = "DateOfBirth";
-    arrSQLTerms[0]._strOperator = "=";
-    arrSQLTerms[0]._objValue = Date("2002-6-21");
+    // arrSQLTerms[0]._strTableName = "Student";
+    // arrSQLTerms[0]._strColumnName = "DateOfBirth";
+    // arrSQLTerms[0]._strOperator = "=";
+    // arrSQLTerms[0]._objValue = Date("2002-6-21");
 
     // Assuming input meets SQL Operator Precendence
     // NOT > AND > XOR > OR    
-    std::vector<std::string> strarrOperators = {};
+    // std::vector<std::string> strarrOperators = {};
 
-    // // Execute SELECT
-    try{
-        dbApp.selectFromTable(arrSQLTerms, strarrOperators);
-    }catch(DBAppException e){
-        std::cout << e.what() << std::endl;
-    }
-
-    
-
-    // // Iterate and print results
-    // for (const auto& row : resultSet) {
-    //     std::cout << "Row:" << std::endl;
-    //     for (const auto& [key, value] : row) {
-    //         std::cout << "  " << key << ": ";
-    //         if (value.type() == typeid(int)) std::cout << std::any_cast<int>(value);
-    //         else if (value.type() == typeid(double)) std::cout << std::any_cast<double>(value);
-    //         else if (value.type() == typeid(std::string)) std::cout << std::any_cast<std::string>(value);
-    //         std::cout << std::endl;
-    //     }
+    // // // Execute SELECT
+    // try{
+    //     dbApp.selectFromTable(arrSQLTerms, strarrOperators);
+    // }catch(DBAppException e){
+    //     std::cout << e.what() << std::endl;
     // }
 
+    // htblColNameValue["name"] = std::string("bruce wayne");
+    // htblColNameValue["id"] = 200;
+    htblColNameValue["gpa"] = 1.4; 
+    try{
+        dbApp.deleteFromTable(strTableName,htblColNameValue);
+    }catch(DBAppException e){
+         std::cout << e.what() << std::endl;
+    }
     return 0;
 }

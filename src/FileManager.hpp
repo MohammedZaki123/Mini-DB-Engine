@@ -1,6 +1,10 @@
 # pragma once
 # include <string>
 # include <vector>
+# include <unordered_set>
+# include <filesystem>
+# include <fstream>
+# include <iostream>
 // Only one interface is needed since readCSV() function takes 
 class FileManager{
     protected:
@@ -40,6 +44,7 @@ class DiskInfoManager: public FileManager{
     void writeCSV(std::vector<std::vector<std::string>> lines) override;
     // void updateFile(std::vector<std::vector<std::string>> pageLines) override;
     void createFile() override;
+    void deletePages(const std::unordered_set<std::string>  & pageName);
 };
 
 // class IndexManager: public FileManager{
@@ -59,6 +64,7 @@ class PageManager{
     void writeCSV(std::vector<std::vector<std::string>> lines) ;
     void createFile();
     void createFile(std::vector<std::string> columnHeaders);
+    void deleteFile();
     // The purpose of this function is:
     // - Get minmum 
     std::vector<std::string> loadPageInfo(std::string pk);

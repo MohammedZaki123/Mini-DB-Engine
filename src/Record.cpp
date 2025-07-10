@@ -1,19 +1,33 @@
 # include "Record.hpp"
-# include "Transformation.hpp"
 
 Record::Record(const std::unordered_map<std::string, std::string> &types, std::vector<std::pair<std::string, std::string>>& values, std::string key)
 {
+    Transformer trans;
     // Nullable value edge case is required
     for(int i = 0 ; i < values.size() ; i++){
         std::string type = types.at(values[i].first);
         if(values[i].second != "null"){
             // for the nullable value of a column
-            std::any val = fromStr(type,values[i].second);
+            std::any val = trans.fromStr(type,values[i].second);
             this->vals.emplace(values[i].first,val);
         }
         this->datatypes.emplace(values[i].first, type);
     }
     this->clusteringKey = key;
+}
+
+Record::Record(const std::unordered_map<std::string, std::string> &types, std::vector<std::pair<std::string, std::string>> &values)
+{
+    Transformer trans;
+     for(int i = 0 ; i < values.size() ; i++){
+        std::string type = types.at(values[i].first);
+        if(values[i].second != "null"){
+            // for the nullable value of a column
+            std::any val = trans.fromStr(type,values[i].second);
+            this->vals.emplace(values[i].first,val);
+        }
+        this->datatypes.emplace(values[i].first, type);
+    }
 }
 
 Record::Record(const std::unordered_map<std::string, std::any> &values, std::unordered_map<std::string, std::string> types, std::string key)
@@ -26,18 +40,20 @@ Record::Record(const std::unordered_map<std::string, std::any> &values, std::uno
 
 bool Record::operator==(Record & record)
 {
-    return isEqual(this->vals.at(clusteringKey), record.getVals().at(record.getClusteringKey()));
+    Decider dec;
+    return dec.isEqual(this->vals.at(clusteringKey), record.getVals().at(record.getClusteringKey()));
 }
 
 bool Record::operator<(Record & record)
 {
-
-    return isLessThan(this->vals.at(clusteringKey), record.getVals().at(record.getClusteringKey()));
+      Decider dec;
+    return dec.isLessThan(this->vals.at(clusteringKey), record.getVals().at(record.getClusteringKey()));
 }
 
 bool Record::operator>(Record & record)
 {
-    return isMoreThan(this->vals.at(clusteringKey), record.getVals().at(record.getClusteringKey()));
+      Decider dec;
+    return dec.isMoreThan(this->vals.at(clusteringKey), record.getVals().at(record.getClusteringKey()));
 }
 // ----- Instance Members -----
 const std::string& Record::getClusteringKey() const {
@@ -71,12 +87,13 @@ void Record::setDatatypes(const std::unordered_map<std::string, std::string>& ty
 const std::vector<std::string> Record::toString(std::vector<std::string> columns)
 {
     // Nullable values is considered 
+    Transformer trans;
     std::vector<std::string> result;
     for(std::string col: columns){
        if(!vals.count(col)){
         result.push_back("null");
        }else{
-        result.push_back(toStr(vals.at(col)));
+        result.push_back(trans.toStr(vals.at(col)));
        }
     }
     return result;

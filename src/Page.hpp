@@ -1,17 +1,22 @@
-#include <string>
+# pragma once
 # include "Record.hpp"
-# include <any>
 # include "FileManager.hpp"
-# include <string>
-# include <vector>
-# include "SQLTerm.hpp"
+# include <queue>
+# include "Exception.hpp"                                                                                                                                     
+# include "DBApp.config"
+# include "Evaluator.hpp"
 class Page {
 private:
     std::string name;
     std::any minPKValue;  // 'any' type represented as void pointer
     std::any maxPKValue;  // 'any' type represented as void pointer
     int totalRecords;
-    // FileManager pointer points to PageManager object to access csv files (pages) stored in the disk
+    // queue is used over vector to improve performance of poping first element
+    // in vector deleting first element time complexity is O(n)
+    // in queue deleting first element time complexity is O(1)
+    std::queue<std::vector<std::string>> currRecs;
+    std::vector<std::vector<std::string>> finalRecs;    
+    // PageManager object points to PageManager object to access csv files (pages) stored in the disk
     PageManager manager;
 
 public:
@@ -27,6 +32,10 @@ public:
     void insertRec(std::vector<std::string> record, std::vector<std::string> colNames);
     bool updateRec(std::any keyVal, std::unordered_map<std::string, std::any> newVals, std::unordered_map<std::string, std::string> types, std::string keyCol);
     void fetchRecords(const std::unordered_map<std::string, std::string> types   ,const std::vector<SQLTerm> & terms,const  std::vector<std::string> operators, std::vector<std::unordered_map<std::string, std::any>>& tuples, std::string keyCol);
+    void eraseRecs(const std::unordered_map<std::string, std::string> types , const std::unordered_map<std::string, std::any> vals, int & delRows);
+    bool fillGaps(Page & page);
+    void terminatePage();
+    void reWrite();
     const std::vector<std::string> toString(std::string tableName);
     // Getters
     const std::string& getName() const { return name; }
@@ -34,6 +43,9 @@ public:
     const std::any& getMaxPKValue() const { return maxPKValue; }
     int getTotalRecords() const { return totalRecords; }
     PageManager getFileManager() const { return manager; }
+    std::queue<std::vector<std::string>> getCurrRecs();
+    // used to pop first element of queue
+    void popCurrRecs();
     // Setters
     // void setName(const std::string& newName) { name = newName; }
     // void setName(std::string&& newName) { name = std::move(newName); }
