@@ -26,7 +26,7 @@ public:
     Table(std::vector<std::vector<std::string>> lines, FileManager * mgr);
     void insertRecord(const std::unordered_map<std::string, std::any>& values);
     bool  updateRecord(const std::unordered_map<std::string, std::any>& values, const std::string strClusteringKeyValue);
-    void updateFilesInfo(std::vector<Page> &pages, int first, int last);
+    // void updateFilesInfo(std::vector<Page> &pages, int first, int last);
     std::vector<std::unordered_map<std::string, std::any>> retreiveResults(const std::vector<SQLTerm> &sqlTerms, const std::vector<std::string> &logicalOperators);
     int deleteRecords(std::unordered_map<std::string, std::any> val);
     const std::string& getName() const;

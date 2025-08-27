@@ -118,7 +118,7 @@ int main() {
     DBApp dbApp;
     dbApp.init();
     // Define table schema (column name → data type)
-    std::string strTableName = "Student";
+    // std::string strTableName = "Student";
     // std::unordered_map<std::string, std::string> htblColNameType;
     // htblColNameType["id"] = "Integer";
     // htblColNameType["name"] = "String";
@@ -135,12 +135,35 @@ int main() {
     //  colNameMax["name"] = std::string("ZZZZZZZZZZZZZ");
     //  colNameMax["gpa"] = 4.0;
     //  colNameMax["DateOfBirth"] = Date(2025,06,21);
-    // Create table and index
-    // try{
-    //     dbApp.createTable(strTableName, "id", htblColNameType,colNameMin,colNameMax);
-    // }catch(DBAppException e){
-    //     std::cout << e.what() << std::endl;
-    // }
+
+     std::string strTableName = "Professor";
+    std::unordered_map<std::string, std::string> htblColNameType;
+    
+      htblColNameType["id"] = "Integer";
+      htblColNameType["name"] = "String";
+      htblColNameType["Department Name"] = "String";
+      htblColNameType["Monthly Salary"] = "Double";
+      htblColNameType["Date Joined"] = "Date";
+
+      std::unordered_map<std::string, std::any> colNameMin;
+     colNameMin["id"] = 0;
+     colNameMin["name"] = std::string("A");
+      colNameMin["Department Name"] = std::string("A");
+    colNameMin["Monthly Salary"] = 1000.0;
+     colNameMin["Date Joined"] = Date(2002,06,21);
+     std::unordered_map<std::string, std::any> colNameMax;
+     colNameMax["id"] = 10000000;   
+     colNameMax["name"] = std::string("ZZZZZZZZZZZZZ");
+     colNameMax["Department Name"] = std::string("ZZZZZZZZZZZZZ");
+     colNameMax["Monthly Salary"] = 9999.9;
+     colNameMax["Date Joined"] = Date(2025,06,21);
+
+
+    try{
+        dbApp.createTable(strTableName, "id", htblColNameType,colNameMin,colNameMax);
+    }catch(DBAppException e){
+        std::cout << e.what() << std::endl;
+    }
     // dbApp.createIndex(strTableName, {"gpa"});
 
     // Insert rows
@@ -213,11 +236,11 @@ int main() {
 
     // htblColNameValue["name"] = std::string("bruce wayne");
     // htblColNameValue["id"] = 200;
-    htblColNameValue["gpa"] = 1.4; 
-    try{
-        dbApp.deleteFromTable(strTableName,htblColNameValue);
-    }catch(DBAppException e){
-         std::cout << e.what() << std::endl;
-    }
-    return 0;
+    // htblColNameValue["gpa"] = 1.4; 
+    // try{
+    //     dbApp.deleteFromTable(strTableName,htblColNameValue);
+    // }catch(DBAppException e){
+    //      std::cout << e.what() << std::endl;
+    // }
+    // return 0;
 }

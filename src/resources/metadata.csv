@@ -3,3 +3,8 @@ Student,DateOfBirth,Date,False,null,null,2002-6-21,2025-6-21
 Student,gpa,Double,False,null,null,0.700000,4.000000
 Student,name,String,False,null,null,A,zzzzzzzzzzzzzz
 Student,id,Integer,True,null,null,0,10000000
+Professor,Date Joined,Date,False,null,null,2002-6-21,2025-6-21
+Professor,Monthly Salary,Double,False,null,null,1000.000000,9999.900000
+Professor,Department Name,String,False,null,null,A,ZZZZZZZZZZZZZ
+Professor,name,String,False,null,null,A,ZZZZZZZZZZZZZ
+Professor,id,Integer,True,null,null,0,10000000
