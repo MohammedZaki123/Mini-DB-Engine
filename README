@@ -1,1 +1,245 @@
-- Mini DB Engine description:
+🧱 Mini DB Engine (C++ Version)
+Project Documentation
+
+This document outlines the architecture and design of the C++-based Mini Database Engine.
+It describes the main classes, their roles, and the logic behind their core operations.
+
+1. DBApp Class
+
+Responsibility:
+Acts as the main interface of the database engine. It coordinates all high-level database operations, handles user input, and performs system initialization and validation.
+
+Key Attributes:
+
+int maxRowsPerPage — Maximum number of records that can fit into a single Page. Loaded from a configuration file (DBConfig.txt).
+
+DiskInfoManager* diskInfoMgr — Manages the CSV file that tracks all existing data pages for all tables.
+
+MetaDataManager* metaDataMgr — Manages the metadata file (metadata.csv) that stores schemas of all created tables.
+
+Key Methods:
+
+void init() — Initializes the database engine.
+Algorithm:
+
+Reads DBConfig.txt to set maxRowsPerPage.
+
+Instantiates MetaDataManager and DiskInfoManager using a Factory class.
+
+Calls createFile() on both managers to ensure the metadata and disk tracking files exist.
+
+void createTable(const string& tableName, const vector<string>& colNames, ...)
+Algorithm:
+
+Checks if the table already exists by reading metadata.
+
+Validates column data types and min/max constraints using the Decider class.
+
+Transforms column definitions into CSV rows.
+
+Writes the schema to metadata.csv through metaDataMgr.
+
+void insertIntoTable(const string& tableName, const unordered_map<string, any>& colNameValue)
+Algorithm:
+
+Reads the schema from metaDataMgr.
+
+Creates a Table instance with the schema.
+
+Validates clustering key presence, column existence, and type correctness.
+
+Delegates the insertion logic to table.insertRecord().
+
+void updateTable(const string& tableName, const string& strClusteringKeyValue, const unordered_map<string, any>& newValues)
+Algorithm:
+
+Reads schema and constructs a Table object.
+
+Ensures the clustering key isn’t being modified.
+
+Validates data types and value ranges.
+
+Delegates to table.updateRecord().
+
+void deleteFromTable(const string& tableName, const unordered_map<string, any>& conditions)
+Algorithm:
+
+Reads schema and builds a Table object.
+
+Validates deletion criteria.
+
+Delegates logic to table.deleteRecords().
+
+vector<Record> selectFromTable(const vector<SQLTerm>& terms, const vector<string>& operators)
+Algorithm:
+
+Loads schema and initializes a Table instance.
+
+Validates each SQLTerm and operator.
+
+Calls table.retrieveResults().
+
+Outputs results using printResults().
+
+2. Table Class
+
+Responsibility:
+Represents a single table in the database. Handles schema interpretation and manages CRUD operations at the page level.
+
+Key Attributes:
+
+string name — The table’s name.
+
+string clusteringKey — The name of the clustering key column.
+
+vector<string> colNames — List of column names.
+
+unordered_map<string, string> columnTypes — Maps column names to data types ("int", "string", "double", etc.).
+
+DiskInfoManager* manager — Handles read/write operations for the table’s page metadata.
+
+Key Methods:
+
+void insertRecord(const unordered_map<string, any>& values)
+Algorithm:
+
+Creates a Record from user-provided values.
+
+Retrieves page list from DiskInfoManager.
+
+If no pages exist, creates one and writes to disk.
+
+If pages exist, finds correct target page based on clustering key.
+
+Calls page.insertRec().
+
+Handles overflow by creating or shifting records between pages.
+
+void updateRecord(const unordered_map<string, any>& values, const string& strClusteringKeyValue)
+Algorithm:
+
+Converts key string to typed value using Transformer.
+
+Locates the correct page using page.isTarget().
+
+Calls page.updateRec() to modify and rewrite the file.
+
+void deleteRecords(const unordered_map<string, any>& conditions)
+Algorithm:
+
+Iterates through all pages, calling page.eraseRecs() to mark deletions.
+
+Calls page.fillGaps() to compact data between pages.
+
+Rewrites modified pages using page.reWrite().
+
+Removes empty pages from DiskInfoManager.
+
+3. Page Class
+
+Responsibility:
+Represents a single CSV data file (e.g., "Student1.csv"). Handles reading, writing, updating, and deleting records.
+
+Key Attributes:
+
+string name — Page filename.
+
+any minPKValue, any maxPKValue — Minimum and maximum key values for quick page targeting.
+
+int totalRecords — Number of records currently in the page.
+
+PageManager* manager — Handles I/O operations for this file.
+
+Key Methods:
+
+bool isTarget(const any& keyVal) — Checks if a key value belongs in this page.
+
+optional<Record> insertRec(const Record& rec)
+Algorithm:
+
+Loads records into memory.
+
+Inserts the new record in sorted order.
+
+If page exceeds maxRowsPerPage, returns the last record for overflow handling.
+
+Rewrites the file.
+
+void updateRec(const any& key, const unordered_map<string, any>& newVals)
+Algorithm:
+
+Reads page file.
+
+Finds record with matching key.
+
+Updates and rewrites file.
+
+void eraseRecs(const unordered_map<string, any>& conditions)
+Algorithm:
+
+Loads page.
+
+Filters out matching records.
+
+Keeps non-deleted records in currRecs.
+
+void reWrite() — Writes updated contents from memory back to disk.
+
+4. Record Class
+
+Responsibility:
+Represents a single row in a table, with values stored type-safely.
+
+Key Attributes:
+
+string clusteringKey — The clustering key column name.
+
+unordered_map<string, any> values — Stores each column name with its typed value.
+
+Key Methods:
+
+Constructors: Create records from CSV strings or user-provided maps (with type conversion via Transformer).
+
+bool lessThan(const Record& other) — Compares by clustering key using Decider.
+
+vector<string> toString(const vector<string>& columns) — Converts record data to string form for CSV writing.
+
+5. Utility Classes
+Decider
+
+Responsibility:
+Provides static comparison functions for various data types.
+
+Key Methods:
+
+bool isLessThan(any a, any b)
+
+bool isMoreThan(any a, any b)
+
+bool isEqual(any a, any b)
+Handles type checking (int, double, string, date, etc.) before comparing.
+
+Transformer
+
+Responsibility:
+Handles type conversion for data serialization and deserialization.
+Key Methods:
+
+string toStr(const any& val) — Converts a typed value to a string.
+
+any fromStr(const string& type, const string& val) — Converts a string back into a typed value.
+
+Evaluator
+
+Responsibility:
+Evaluates complex query conditions based on multiple SQLTerms and logical operators.
+
+Algorithm:
+
+Iterates through all SQLTerms.
+
+For each term, determines if the condition is satisfied using Decider.
+
+Combines boolean results according to the logical operators (AND, OR, XOR).
+
+Returns true if the record satisfies the query.
